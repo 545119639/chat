@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="http://localhost:9983/socket.io/socket.io.js"></script>
+    <title>Chat</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: url("./assets/875040.jpg");
+        background-size: 100% 100%;
+      }
+      .wrap {
+        width: 500px;
+        height: 500px;
+        border: 1px solid #ccc;
+        margin: auto;
+        position: relative;
+        top: 30px;
+        background: #fff;
+      }
+      .contentZone {
+        width: 400px;
+        height: 100%;
+      }
+      .content {
+        height: 414px;
+        width: 100%;
+        overflow: auto;
+      }
+      .textarea {
+        width: calc(100% + 95px);
+        height: 80px;
+        resize: none;
+      }
+      .btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: #fff;
+        border: 1px solid #ccc;
+      }
+      .userZone {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 100px;
+        height: 414px;
+        border-left: 1px solid #ccc;
+      }
+      .topTitle {
+        height: 40px;
+        width: 502px;
+        margin: auto;
+        text-align: center;
+        line-height: 40px;
+        position: relative;
+        top: 30px;
+        background: #fff;
+      }
+      .blackWrap {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        position: absolute;
+        top: 0;
+        z-index: 5;
+        transition: 0.8s;
+      }
+      h3 {
+        color: #fff;
+        font-size: 24px;
+        text-align: center;
+        margin-top: 150px;
+      }
+      .wrapName {
+        height: 30px;
+        width: 300px;
+        margin-left: calc(50% - 150px);
+      }
+      .queren {
+        width: 301px;
+        height: 30px;
+        display: block;
+        margin: 20px auto;
+      }
+      ul,
+      ol {
+        margin: 0;
+        padding: 0;
+      }
+      li {
+        list-style: none;
+        text-indent: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blackWrap">
+      <h3>请输入用户名</h3>
+      <input class="wrapName" />
+      <button class="queren">确认</button>
+    </div>
+    <div class="topTitle">聊天室</div>
+    <div class="wrap">
+      <div class="contentZone">
+        <div class="content">
+          <ul class="ul"></ul>
+        </div>
+        <textarea class="textarea"></textarea>
+        <button class="btn">发送</button>
+      </div>
+      <div class="userZone">
+        <ol class="ol"></ol>
+      </div>
+    </div>
+  </body>
+  <script>
+    window.onload = () => {
+      document.querySelector(".queren").onclick = () => {
+        let w = document.querySelector(".wrapName").value;
+        if (w.trim()) {
+          window.connection = io.connect("ws://localhost:9983");
+          document.querySelector(".blackWrap").style.transform =
+            "translateY(-100%)";
+          connection.emit("name", w);
+
+          connection.on("msg", (json) => {
+            let uli = document.createElement("LI");
+            uli.innerHTML = `<li><p style='margin-bottom:0'>${json.userName} ${json.timer}</p><p>${json.content}</p></li>`;
+            document.querySelector(".ul").appendChild(uli);
+          });
+
+          connection.on("user", (arr) => {
+            document.querySelector(".ol").innerHTML = "";
+            for (let i = 0; i < arr.length; i++) {
+              let uli = document.createElement("LI");
+              uli.innerHTML = `<li>${arr[i]}</li>`;
+              document.querySelector(".ol").appendChild(uli);
+            }
+          });
+
+          connection.on("historyList", (arr) => {
+            document.querySelector(".ul").innerHTML = "";
+            for (let i = 0; i < arr.length; i++) {
+              let uli = document.createElement("LI");
+              uli.innerHTML = `<li><p style='margin-bottom:0'>${arr[i].userName} ${arr[i].timer}</p><p>${arr[i].content}</p></li>`;
+              document.querySelector(".ul").appendChild(uli);
+            }
+          });
+        } else {
+          alert("请输入用户名");
+        }
+      };
+
+      document.querySelector(".btn").onclick = () => {
+        connection.emit("msg", document.querySelector(".textarea").value);
+      };
+    };
+  </script>
+</html>
